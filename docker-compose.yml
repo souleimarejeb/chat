@@ -1,0 +1,48 @@
+version: '3'
+
+networks:
+    back:
+services:
+  # FRONTEND
+  angular-front:
+    build: ./front/
+    ports:
+      - "4200:4200"
+    networks:
+      - back
+
+  # DB with volume to store data
+  postgresdb:
+    image: postgres:15
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      # When your password is empty, you need to allow empty password login
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_ROOT_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DATABASE}
+    ports:
+      - 5432:5432
+    networks:
+      - back
+    volumes:
+      - db-postgres:/var/lib/postgresql/data
+
+  # BACKEND
+  nestjs-api:
+    depends_on:
+        - postgresdb
+    build: ./api/
+    ports:
+      - 3000:3000
+    environment:
+      - DB_HOST=postgresdb
+      - DB_PORT=$POSTGRES_LOCAL_PORT
+      - DB_USERNAME=$POSTGRES_USER
+      - DB_PASSWORD=$POSTGRES_ROOT_PASSWORD
+      - DB_NAME=$POSTGRES_DATABASE
+    networks:
+      - back
+
+volumes:
+    db-postgres:
