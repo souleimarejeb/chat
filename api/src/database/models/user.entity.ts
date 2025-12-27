@@ -1,0 +1,24 @@
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+const bcrypt = require('bcrypt');
+
+@Entity()
+export class UserEntity {
+    
+    @PrimaryGeneratedColumn()
+    id:number
+
+    @Column()
+    username :string;
+
+    @Column({unique:true})
+    email :string;
+
+    @Column({select:false})
+    password :string;
+
+    @BeforeInsert()
+    emailToLowerCase(){
+        this.email=this.email.toLocaleLowerCase();
+    }
+
+}
